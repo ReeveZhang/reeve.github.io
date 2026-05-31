@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIMID 折扣卡片</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: transparent;
+      font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: center;
+    }
+    .card {
+      background: rgba(0,0,0,0.72);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: 18px 18px 0 0;
+      padding: 18px 20px 16px;
+      color: white;
+      text-align: center;
+      width: 90%;
+      max-width: 400px;
+      margin-bottom: 20px;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.5);
+      opacity: 0;
+      transform: translateY(50px);
+      transition: opacity 0.5s, transform 0.5s;
+      pointer-events: auto;
+    }
+    .card.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .product-name {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .price {
+      font-size: 2.4rem;
+      font-weight: 800;
+      color: #FFD700;
+      line-height: 1.2;
+    }
+    .original-price {
+      font-size: 0.9rem;
+      text-decoration: line-through;
+      color: #aaa;
+      font-weight: 400;
+    }
+    .promo {
+      font-size: 0.85rem;
+      color: #FF6B6B;
+      margin: 4px 0 8px;
+    }
+    .buy-btn {
+      background: linear-gradient(135deg, #FF6B35, #FF8C42);
+      border: none;
+      color: white;
+      padding: 12px 36px;
+      font-size: 1rem;
+      font-weight: 700;
+      border-radius: 30px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(255,107,53,0.4);
+      transition: transform 0.1s;
+    }
+    .buy-btn:active { transform: scale(0.95); }
+  </style>
+</head>
+<body>
+  <div id="card" class="card">
+    <div class="product-name">🎧 高品质降噪耳机</div>
+    <div class="price">
+      ¥199 <span class="original-price">¥499</span>
+    </div>
+    <div class="promo">⚡ 限时5折 · 仅限今日</div>
+    <button class="buy-btn" id="ctaBtn">立即抢购</button>
+  </div>
+
+  <script>
+    /**
+     * 一个严格遵循 SIMID 协议的折扣卡片创意
+     * 参考 Google SIMID Survey 示例的生命周期和通信方式
+     */
+    (function() {
+      // ========== 通信辅助 ==========
+      const sendMessage = (type, args = {}) => {
+        const msg = {
+          type: type,
+          sessionId: sessionId,
+          messageId: ++messageIdCounter,
+          timestamp: Date.now(),
+          args: args
+        };
+        console.log('[折扣卡片] 发送消息:', msg);
+        window.parent.postMessage(JSON.stringify(msg), '*');
+      };
+
+      const resolveMessage = (msgId, value = {}) => {
+        sendMessage('resolve', { messageId: msgId, value: value });
+      };
+
+      const rejectMessage = (msgId, error = { errorCode: 0, message: '' }) => {
+        sendMessage('reject', { messageId: msgId, value: error });
+      };
+
+      // ========== 状态变量 ==========
+      let sessionId = '';
+      let messageIdCounter = 0;
+      let creativeData = null;   // 广告参数
+      let environmentData = null;
+      let cardVisible = false;
+
+      // ========== DOM 元素 ==========
+      const card = document.getElementById('card');
+      const ctaBtn = document.getElementById('ctaBtn');
+
+      // ========== 事件监听 ==========
+      window.addEventListener('message', function(event) {
+        let msg;
+        try {
+          msg = JSON.parse(event.data);
+        } catch (e) {
+          return; // 非 JSON 消息忽略
+        }
+
+        console.log('[折扣卡片] 收到消息:', msg);
+
+        // 只处理与当前 sessionId 匹配的消息（createSession 除外）
+        if (msg.type !== 'createSession' && msg.sessionId !== sessionId) return;
+
+        switch (msg.type) {
+          case 'createSession':
+            sessionId = msg.args.sessionId;
+            // 创建会话后，必须马上解析 createSession 消息
+            resolveMessage(msg.messageId, {});
+            break;
+
+          case 'SIMID:Player:init':
+            // 解析 init，并保存创意数据和环境数据
+            creativeData = msg.args.creativeData;
+            environmentData = msg.args.environmentData;
+            resolveMessage(msg.messageId, {});
+            // 初始化完成后，通常播放器会立即发送 startCreative
+            break;
+
+          case 'SIMID:Player:startCreative':
+            // 广告开始，展示卡片
+            showCard();
+            resolveMessage(msg.messageId, {});
+            break;
+
+          case 'SIMID:Player:adStopped':
+          case 'SIMID:Player:adSkipped':
+            hideCard();
+            resolveMessage(msg.messageId, {});
+            break;
+
+          case 'SIMID:Media:ended':
+            hideCard();
+            // 不需要 resolve，因为这是单向事件
+            break;
+
+          // 其他事件可以忽略，但为了规范，我们简单 resolve
+          default:
+            if (msg.messageId) {
+              resolveMessage(msg.messageId, {});
+            }
+            break;
+        }
+      });
+
+      // ========== UI 控制 ==========
+      function showCard() {
+        if (cardVisible) return;
+        card.classList.add('show');
+        cardVisible = true;
+      }
+
+      function hideCard() {
+        if (!cardVisible) return;
+        card.classList.remove('show');
+        cardVisible = false;
+      }
+
+      // ========== 按钮交互 ==========
+      ctaBtn.addEventListener('click', function() {
+        console.log('[折扣卡片] 按钮被点击');
+        // 通过 SIMID 协议发送点击跳转（如果播放器支持）
+        // 通常点击应使用 requestSkip 或自定义消息，但规范中没有直接 click 方法
+        // 我们可以发送一个自定义消息，或使用 window.open 降级
+        // 这里按照常见做法：通过 postMessage 通知播放器，并尝试直接打开
+        if (creativeData && creativeData.clickThruUrl) {
+          window.open(creativeData.clickThruUrl, '_blank');
+        } else {
+          // 如果没有提供落地页，打开默认链接
+          window.open('https://www.example.com/product/headphone?ref=simid', '_blank');
+        }
+        // 同时通知播放器（可选）
+        sendMessage('SIMID:Creative:reportTracking', {
+          trackingUrls: ['https://track.example.com/click']
+        });
+      });
+
+      // ========== 启动创意 ==========
+      // 与 Google 样例一致，创意必须主动调用 startCreative（即发送 createSession）
+      console.log('[折扣卡片] 创意已加载，准备创建会话...');
+      // 使用一个小的延迟确保 iframe 完全准备好
+      setTimeout(() => {
+        sendMessage('createSession', {});
+      }, 50);
+    })();
+  </script>
+</body>
+</html>
