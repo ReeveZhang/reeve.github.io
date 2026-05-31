@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>商品折扣卡片 · SIMID</title>
+  <title>Temu</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -20,8 +20,8 @@
     }
     .card-container {
       pointer-events: auto;
-      width: 200px;               /* 固定宽度 200px */
-      max-height: 150px;          /* 最大高度限制 */
+      width: 200px;
+      max-height: 150px;
       margin-bottom: 16px;
       margin-left: 12px;
       background: white;
@@ -30,7 +30,7 @@
       opacity: 0;
       transform: translateX(-20px);
       transition: opacity 0.4s ease, transform 0.4s ease;
-      overflow: hidden;           /* 超出隐藏，保证圆角（虽然直角） */
+      overflow: hidden;
     }
     .card-container.show {
       opacity: 1;
@@ -53,7 +53,7 @@
       gap: 5px;
     }
     .product-image {
-      width: 50px;                /* 缩小图片 */
+      width: 50px;
       height: 50px;
       min-width: 50px;
       object-fit: cover;
@@ -125,7 +125,7 @@
     <div class="card-body">
       <img class="product-image" 
            src="https://img.kwcdn.com/product/fancy/25afa702-590b-45cc-b0de-66ae40c9fd18.jpg?imageView2/2/w/500/q/70/format/avif" 
-           alt="商品图片" />
+           alt="image" />
       <div class="product-info">
         <div class="product-title">66-in-1 Ratchet Screwdriver Set with 62 Magnetic Bits (PH0-TX135) - Professional Electronics Repair Tool Kit, Precision Multi-Function Handle & Magnetizer Tool for Smartphones, Watches, Laptops, Glasses - Portable Screwdriver Kit for DIY &, Toolkit</div>
         <div class="sales">🔥 62 sold</div>
@@ -151,7 +151,6 @@
           timestamp: Date.now(),
           args: args
         };
-        console.log('[折扣卡片] 发送:', msg);
         window.parent.postMessage(JSON.stringify(msg), '*');
       };
 
@@ -177,9 +176,6 @@
           return;
         }
         if (msg.type !== 'createSession' && msg.sessionId !== sessionId) return;
-
-        console.log('[折扣卡片] 收到:', msg);
-
         switch (msg.type) {
           case 'createSession':
             sessionId = msg.args.sessionId;
@@ -204,14 +200,10 @@
             break;
         }
       });
-
       shopBtn.addEventListener('click', function() {
-        console.log('[折扣卡片] Shop Now 点击');
         sendMessage('SIMID:Creative:requestSkip');
         window.open('https://www.temu.com/ul/kuiper/un1.html?subj=feed-un&_bg_fs=1&_p_mat1_type=1&_p_jump_id=725&_x_vst_scene=adg&goods_id=601101903134543&adg_ctx=a-2a3f2591~t-ik66&_x_ns_goods_id=601101903134543&_p_rfs=1', '_blank');
       });
-
-      console.log('[折扣卡片] 创意加载完成，发送 createSession');
       setTimeout(() => {
         sendMessage('createSession', {});
       }, 50);
