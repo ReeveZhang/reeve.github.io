@@ -15,105 +15,107 @@
       display: flex;
       flex-direction: column;
       justify-content: flex-end;
-      align-items: center;
-      pointer-events: none; /* 让点击穿透到视频，卡片内部会重设 */
+      align-items: flex-start;
+      pointer-events: none;
     }
     .card-container {
       pointer-events: auto;
-      width: 90%;
-      max-width: 400px;
-      margin-bottom: 20px;
+      width: 200px;               /* 固定宽度 200px */
+      max-height: 150px;          /* 最大高度限制 */
+      margin-bottom: 16px;
+      margin-left: 12px;
       background: white;
-      border-radius: 0; /* 直角 */
-      box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+      border-radius: 0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
       opacity: 0;
-      transform: translateY(30px);
+      transform: translateX(-20px);
       transition: opacity 0.4s ease, transform 0.4s ease;
+      overflow: hidden;           /* 超出隐藏，保证圆角（虽然直角） */
     }
     .card-container.show {
       opacity: 1;
-      transform: translateY(0);
+      transform: translateX(0);
     }
-    /* 红色顶栏 */
     .card-header {
-      background: #d32f2f;
+      background: #ff7700;
       color: white;
-      padding: 8px 16px;
+      padding: 3px 8px;
       font-weight: 700;
-      font-size: 1rem;
+      font-size: 0.7rem;
       text-align: left;
-      letter-spacing: 1px;
+      letter-spacing: 0.3px;
+      line-height: 1.2;
     }
-    /* 卡片主体 */
     .card-body {
       display: flex;
-      padding: 12px 16px;
+      padding: 5px 8px;
       align-items: center;
-      gap: 12px;
+      gap: 5px;
     }
-    /* 左侧正方形图片占位 */
     .product-image {
-      width: 90px;
-      height: 90px;
-      min-width: 90px;
-      background: #f0f0f0;
+      width: 50px;                /* 缩小图片 */
+      height: 50px;
+      min-width: 50px;
+      object-fit: cover;
       border: 1px solid #ddd;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #999;
-      font-size: 0.8rem;
+      background: #f0f0f0;
     }
-    /* 右侧信息 */
     .product-info {
       flex: 1;
       display: flex;
       flex-direction: column;
       justify-content: center;
-      gap: 4px;
+      gap: 1px;
+      overflow: hidden;
     }
     .product-title {
       font-weight: 600;
-      font-size: 0.95rem;
+      font-size: 0.65rem;
       color: #222;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
+      white-space: nowrap;
       overflow: hidden;
+      text-overflow: ellipsis;
       line-height: 1.3;
     }
     .sales {
-      font-size: 0.8rem;
+      font-size: 0.6rem;
       color: #888;
-      margin: 2px 0;
+      margin: 1px 0;
+      white-space: nowrap;
+    }
+    .price-row {
+      display: flex;
+      align-items: baseline;
+      flex-wrap: wrap;
+      margin-top: 1px;
     }
     .price {
       font-weight: 700;
-      font-size: 1.2rem;
-      color: #e53935;
+      font-size: 0.8rem;
+      color: #ff7700;
     }
     .original-price {
-      font-size: 0.75rem;
+      font-size: 0.6rem;
       text-decoration: line-through;
       color: #aaa;
-      margin-left: 6px;
+      margin-left: 4px;
       font-weight: 400;
     }
     .shop-btn {
-      background: #e53935;
+      background: #ff7700;
       color: white;
       border: none;
-      padding: 8px 18px;
+      padding: 3px 10px;
       font-weight: 700;
-      font-size: 0.85rem;
-      border-radius: 4px;
+      font-size: 0.65rem;
+      border-radius: 3px;
       cursor: pointer;
-      margin-top: 6px;
-      align-self: flex-start;
-      letter-spacing: 0.5px;
+      align-self: flex-end;
+      margin-top: 3px;
+      line-height: 1;
     }
     .shop-btn:active {
-      background: #b71c1c;
+      background: #ff7700;
     }
   </style>
 </head>
@@ -121,13 +123,15 @@
   <div class="card-container" id="discountCard">
     <div class="card-header">Hot Sale</div>
     <div class="card-body">
-      <div class="product-image">📷 图片</div>
+      <img class="product-image" 
+           src="https://img.kwcdn.com/product/fancy/25afa702-590b-45cc-b0de-66ae40c9fd18.jpg?imageView2/2/w/500/q/70/format/avif" 
+           alt="商品图片" />
       <div class="product-info">
-        <div class="product-title">高品质无线降噪耳机 · 旗舰版</div>
-        <div class="sales">🔥 已售 2.3万+</div>
-        <div>
-          <span class="price">¥199</span>
-          <span class="original-price">¥499</span>
+        <div class="product-title">66-in-1 Ratchet Screwdriver Set with 62 Magnetic Bits (PH0-TX135) - Professional Electronics Repair Tool Kit, Precision Multi-Function Handle & Magnetizer Tool for Smartphones, Watches, Laptops, Glasses - Portable Screwdriver Kit for DIY &, Toolkit</div>
+        <div class="sales">🔥 62 sold</div>
+        <div class="price-row">
+          <span class="price">$16.27</span>
+          <span class="original-price">$75.66</span>
         </div>
         <button class="shop-btn" id="shopNowBtn">Shop Now</button>
       </div>
@@ -135,12 +139,7 @@
   </div>
 
   <script>
-    /**
-     * SIMID 折扣卡片创意
-     * 参考 Google SIMID Survey 示例的通信协议
-     */
     (function() {
-      // 通信辅助
       let sessionId = '';
       let messageIdCounter = 0;
 
@@ -160,15 +159,9 @@
         sendMessage('resolve', { messageId: msgId, value: value });
       };
 
-      const rejectMessage = (msgId, error = { errorCode: 0, message: '' }) => {
-        sendMessage('reject', { messageId: msgId, value: error });
-      };
-
-      // 卡片 DOM
       const card = document.getElementById('discountCard');
       const shopBtn = document.getElementById('shopNowBtn');
 
-      // 显示/隐藏
       function showCard() {
         card.classList.add('show');
       }
@@ -176,7 +169,6 @@
         card.classList.remove('show');
       }
 
-      // 处理来自播放器的消息
       window.addEventListener('message', function(event) {
         let msg;
         try {
@@ -184,8 +176,6 @@
         } catch (e) {
           return;
         }
-
-        // 仅处理与当前会话相关（createSession 除外）
         if (msg.type !== 'createSession' && msg.sessionId !== sessionId) return;
 
         console.log('[折扣卡片] 收到:', msg);
@@ -195,24 +185,18 @@
             sessionId = msg.args.sessionId;
             resolveMessage(msg.messageId, {});
             break;
-
           case 'SIMID:Player:init':
-            // 保存 creativeData 和 environmentData 以备后用
             resolveMessage(msg.messageId, {});
             break;
-
           case 'SIMID:Player:startCreative':
             showCard();
             resolveMessage(msg.messageId, {});
             break;
-
           case 'SIMID:Player:adStopped':
           case 'SIMID:Player:adSkipped':
             hideCard();
             resolveMessage(msg.messageId, {});
             break;
-
-          // 忽略其他事件，但必须 resolve 避免超时
           default:
             if (msg.messageId) {
               resolveMessage(msg.messageId, {});
@@ -221,16 +205,12 @@
         }
       });
 
-      // 按钮点击：请求跳过广告（或打开落地页）
       shopBtn.addEventListener('click', function() {
         console.log('[折扣卡片] Shop Now 点击');
-        // 发送请求跳过广告，播放器通常会结束广告并跳转
         sendMessage('SIMID:Creative:requestSkip');
-        // 同时尝试直接打开（降级）
-        window.open('https://www.example.com/product/headphone', '_blank');
+        window.open('https://www.temu.com/ul/kuiper/un1.html?subj=feed-un&_bg_fs=1&_p_mat1_type=1&_p_jump_id=725&_x_vst_scene=adg&goods_id=601101903134543&adg_ctx=a-2a3f2591~t-ik66&_x_ns_goods_id=601101903134543&_p_rfs=1', '_blank');
       });
 
-      // 启动创意：发送 createSession 建立连接
       console.log('[折扣卡片] 创意加载完成，发送 createSession');
       setTimeout(() => {
         sendMessage('createSession', {});
